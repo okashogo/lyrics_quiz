@@ -3,10 +3,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  final FlutterTts tts = FlutterTts();
+  final title = '歌詞当てクイズ';
   runApp(MaterialApp(
     home: Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: ListView(
+          children: lyricsList
+              .map(
+                (lyrics) => ListTile(
+                  leading: Icon(
+                    Icons.map,
+                  ),
+                  title: Text(lyrics.substring(0, 5)),
+                  onTap: () => ttsSpeak(lyrics),
+                ),
+              )
+              .toList()),
+      // body: ListView(children: [
+      //   ListTile(
+      //     leading: Icon(
+      //       Icons.map,
+      //     ),
+      //     title: Text(lyricsList[0].substring(0, 5)),
+      //     onTap: () => ttsSpeak(0),
+      //   ),
+      //   ListTile(
+      //     leading: Icon(Icons.photo_album),
+      //     title: Text(lyricsList[1].substring(0, 5)),
+      //     onTap: () => ttsSpeak(1),
+      //   ),
+      //   ListTile(
+      //     leading: Icon(Icons.phone),
+      //     title: Text(lyricsList[2].substring(0, 5)),
+      //     onTap: () => ttsSpeak(2),
+      //   ),
+      // ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           // await tts.setVoice({'name': 'ja-jp-x-jab-local', 'locale': 'ja-JP'});
@@ -14,18 +47,15 @@ void main() {
           // await tts.setVoice({'name': 'ja-jp-x-jac-local', 'locale': 'ja-JP'});
           // await tts.setVoice({'name': 'ja-jp-x-htm-local', 'locale': 'ja-JP'});
 
-          // speed調整
-          await tts.setSpeechRate(0.4);
-
           // text
-          await tts.speak(
-                '手帳を開くと、もう、'
-                '2年たつなぁって、'
-                'やっぱり、実感するね、、'
-                'なんだか、照れたりするね、、'
-                'そういや、ひどいこともされたし、、'
-                'ひどいことも、いったし、、',
-          );
+          // await tts.speak(
+          //       '手帳を開くと、もう、'
+          //       '2年たつなぁって、'
+          //       'やっぱり、実感するね、、'
+          //       'なんだか、照れたりするね、、'
+          //       'そういや、ひどいこともされたし、、'
+          //       'ひどいことも、いったし、、',
+          // );
         },
         child: Icon(Icons.play_arrow),
       ),
@@ -33,6 +63,50 @@ void main() {
   ));
 }
 
+ttsSpeak(String text) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final FlutterTts tts = FlutterTts();
+  await tts.setSpeechRate(0.4);
+  await tts.speak(text);
+}
+
+const List<String> lyricsList = const <String>[
+  '手帳を開くと、もう、'
+      '2年たつなぁって、'
+      'やっぱり、実感するね、、'
+      'なんだか、照れたりするね、、'
+      'そういや、ひどいこともされたし、、'
+      'ひどいことも、いったし、、',
+  '泥だらけの、走馬灯に酔う、こわばる心、'
+      '震える手は、掴みたいものがある、それだけさ、、'
+      '夜の匂いに、空睨んでも、'
+      '変わっていけるのは、自分自身だけ、それだけさ',
+  '君の髪や、瞳だけで、胸が痛いよ、、'
+      '同じ時を、吸いこんで、離したくないよ、、'
+      '遥か昔から知る、その声に、'
+      '生まれて、はじめて、何を言えばいい？',
+  '少し間が空いて、君がうなずいて、僕らの心、満たされてく、あいで、'
+      'ぼくらまだ旅の途中で、またこれから先も、'
+      '何十年続いていけるような未来へ',
+  '友達の嘘も、'
+      '転がされる愛も、'
+      '何から信じていいんでしょうね、、'
+      '大人になってもきっと、'
+      '宝物は褪せないよ、'
+      '大丈夫だから、'
+      '今わさ、'
+      '青に飛び込んで居よう',
+  '握りしめた手、離すことなく、思いは強く、永遠誓う、、'
+      '永遠の淵、きっと僕は言う、思い変わらず、同じ言葉を、'
+      'それでも足りず、涙にかわり、喜びになり、'
+      '言葉にできず、ただ抱きしめる',
+  'あの手紙は、すぐにでも、捨てて欲しい、と言ったのに、'
+      '少しだけ眠い、冷たい水で、こじあけて、'
+      '今、せかされるように、飛ばされるように、通り過ぎてく',
+  'いつの時代も、悲しみを、避けては、通れないけれど、'
+      '笑顔を見せて、今を生きていこう、'
+      '今を生きていこう',
+];
 // void main() {
 //   runApp(MyApp());
 // }
@@ -90,7 +164,6 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
-
   }
 
   @override
