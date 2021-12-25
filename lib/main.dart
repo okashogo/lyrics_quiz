@@ -1,33 +1,204 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-void main() {
+void main() => runApp(Lyrics());
+
+enum Answers { YES, NO }
+
+class Lyrics extends StatelessWidget {
+  // createDialogOption(BuildContext context, Answers answer, String str) {
+  //   return new SimpleDialogOption(
+  //     child: new Text(str),
+  //     onPressed: () {
+  //       Navigator.pop(context, answer);
+  //     },
+  //   );
+  // }
+
+  // void openDialog(BuildContext context) {
+  //   showDialog<Answers>(
+  //     context: context,
+  //     builder: (BuildContext context) => new SimpleDialog(
+  //       title: new Text('SimpleDialog'),
+  //       children: <Widget>[
+  //         Text('aaa'),
+  //         Text(''),
+  //         // createDialogOption(context, Answers.YES, 'Yes'),
+  //         // createDialogOption(context, Answers.NO, 'No')
+  //       ],
+  //     ),
+  //   ).then((value) {
+  //     switch (value) {
+  //       case Answers.YES:
+  //         // _setValue('Yes');
+  //         break;
+  //       case Answers.NO:
+  //         // _setValue('No');
+  //         break;
+  //     }
+  //   });
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      routes: <String, WidgetBuilder>{
+        '/': (BuildContext context) => new MainPage(),
+        '/add': (BuildContext context) => new SubPage()
+      },
+    );
+  }
+}
+
+class MainPage extends StatelessWidget {
   final title = '歌詞当てクイズ';
-  runApp(MaterialApp(
-    home: Scaffold(
-      appBar: AppBar(
-        title: Text(title),
+
+  final String _value = '';
+
+  // void _setValue(String value) => setState(() => _value = value);
+
+  void cached() {
+    print('cached');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+          backgroundColor: Colors.orange,
+          centerTitle: true,
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.cached,
+                color: Colors.white,
+              ),
+              onPressed: cached,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pushNamed("/add"),
+            ),
+          ],
+        ),
+        body: ListView(
+            children: lyricsList
+                .map(
+                  (lyrics) => ListTile(
+                      leading: Icon(
+                        Icons.music_note,
+                      ),
+                      title: Text(lyrics[0].substring(0, 10)),
+                      onTap: () => ttsSpeak(lyrics[0]),
+                      trailing: IconButton(
+                          onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
+                          icon: Icon(Icons.recommend))),
+                )
+                .toList())
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {},
+        //   child: Icon(Icons.play_arrow),
+        // ),
+        );
+  }
+}
+
+class SubPage extends StatelessWidget {
+  String _textSongTitle = '';
+  String _textlyrics = '';
+  void _handleTextSongTitle(String e) {
+    print(e);
+    _textSongTitle = e;
+    // setState(() {
+    //   _textSongTitle = e;
+    // });
+  }
+
+  void _handleTextlyrics(String e2) {
+    print(e2);
+    _textlyrics = e2;
+    // setState(() {
+    //   _textlyrics = e2;
+    // });
+  }
+
+  void addLyrics() {
+    print("dadad");
+    print(_textSongTitle);
+    print(_textlyrics);
+    // setState(() {
+    //   _textlyrics = e2;
+    // });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text('Navigator'),
       ),
-      body: ListView(
-          children: lyricsList
-              .map(
-                (lyrics) => ListTile(
-                    leading: Icon(
-                      Icons.music_note,
-                    ),
-                    title: Text(lyrics[0].substring(0, 10)),
-                    onTap: () => ttsSpeak(lyrics[0]),
-                    trailing: IconButton(
-                        onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
-                        icon: Icon(Icons.recommend))),
-              )
-              .toList()),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () async {},
-      //   child: Icon(Icons.play_arrow),
-      // ),
-    ),
-  ));
+      body: new Container(
+        padding: new EdgeInsets.all(32.0),
+        child: new Center(
+            child: new Column(
+          children: <Widget>[
+            Text('歌詞'),
+            TextField(
+              enabled: true,
+              // 入力数
+              style: TextStyle(color: Colors.black),
+              obscureText: false,
+              maxLines: 1,
+              onChanged: _handleTextlyrics,
+            ),
+            Text('歌手、曲名(大塚愛の、さくらんぼ)'),
+            TextField(
+              enabled: true,
+              // 入力数
+              style: TextStyle(color: Colors.red),
+              obscureText: false,
+              maxLines: 1,
+              onChanged: _handleTextSongTitle,
+            ),
+            ElevatedButton(
+              onPressed: addLyrics,
+              child: new Text('追加'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: new Text('戻る'),
+            ),
+          ],
+        )),
+      ),
+    );
+  }
+}
+
+void showSimpleSnackBar(BuildContext context, String message) {
+  final snackBar = SnackBar(
+    content: Row(children: <Widget>[
+      Icon(Icons.check),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(children: <Widget>[
+          Text(message),
+          new TextField(
+            enabled: true,
+            // 入力数
+            style: TextStyle(color: Colors.red),
+            obscureText: false,
+            maxLines: 1,
+          ),
+        ]),
+      )
+    ]),
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
 ttsSpeak(String text) async {
@@ -240,7 +411,7 @@ const List<List<String>> lyricsList = const <List<String>>[
         '頑張っていれば、'
         'お天道様が必ず微笑んでくれるさ、'
         'もう一度君に包まれたくて、'
-        '走り抜けて来たよ、季節を',
+        '走り抜けて来たよ、いくつもの季節を',
     '睡蓮花'
   ],
   [
