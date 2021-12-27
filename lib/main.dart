@@ -3,6 +3,9 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'pages/mainPage.dart';
+import 'pages/addPage.dart';
+
 void main() => runApp(Lyrics());
 
 enum Answers { YES, NO }
@@ -20,239 +23,10 @@ class Lyrics extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => new MainPage(),
-        '/add': (BuildContext context) => new SubPage()
+        '/add': (BuildContext context) => new AddPage()
       },
     );
   }
-}
-
-class MainPage extends StatefulWidget {
-  MainPage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<StatefulWidget> createState() {
-    return MainPageState();
-  }
-}
-
-class MainPageState extends State<MainPage> {
-  final title = '歌詞当てクイズ';
-
-  final String _value = '';
-
-  List<List<String>> lyricsListNew = [];
-
-  @override
-  void initState() {
-    super.initState();
-
-    print("initState!!!");
-    cached();
-  }
-
-  void cached() async {
-    var client = http.Client();
-    try {
-      var url = Uri.parse(
-          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
-      var response = await http.get(url);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      Map<String, dynamic> responseList = jsonDecode(response.body);
-      print(responseList);
-      print(responseList['Items']);
-      print("responseItem");
-      List<List<String>> lyricsListTmp = [];
-      for (var responseItem in responseList['Items']) {
-        print(responseItem['title']);
-        print(responseItem['body']);
-        lyricsListTmp.add([
-          responseItem['body'],
-          responseItem['title'],
-        ]);
-      }
-
-      print(lyricsListTmp);
-      setState(() {
-        lyricsListNew = lyricsListTmp;
-      });
-
-      // print(await client.get(uri));
-    } finally {
-      client.close();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-        appBar: AppBar(
-          title: Text(title),
-          backgroundColor: Colors.orange,
-          centerTitle: true,
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.cached,
-                color: Colors.white,
-              ),
-              onPressed: cached,
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              onPressed: () => Navigator.of(context).pushNamed("/add").then((value) => cached()),
-            ),
-          ],
-        ),
-        body: ListView(
-            children: lyricsListNew
-                .map(
-                  (lyrics) => ListTile(
-                      leading: Icon(
-                        Icons.music_note,
-                      ),
-                      title: Text(lyrics[0].length >= 10
-                          ? lyrics[0].substring(0, 10)
-                          : lyrics[0]),
-                      onTap: () => ttsSpeak(lyrics[0]),
-                      onLongPress: () => {},
-                      trailing: IconButton(
-                          onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
-                          icon: Icon(Icons.recommend))),
-                )
-                .toList())
-        );
-  }
-}
-
-class SubPage extends StatefulWidget {
-  SubPage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<StatefulWidget> createState() {
-    return SubPageState();
-  }
-}
-
-class SubPageState extends State<SubPage> {
-  String _textTitle = '';
-  String _textBody = '';
-  void _handleTextSongTitle(String title) {
-    print(title);
-    setState(() {
-      _textTitle = title;
-    });
-  }
-
-  void _handleTextlyrics(String body) {
-    setState(() {
-      _textBody = body;
-    });
-  }
-
-  void addLyrics() async {
-    var client = http.Client();
-    try {
-      var url = Uri.parse(
-          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
-      var response = await http.post(url,
-        body: jsonEncode({
-          'title': _textTitle,
-          'body': _textBody,
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-      );
-      print(response);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      Navigator.of(context).pop();
-    } finally {
-      client.close();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text('Navigator'),
-      ),
-      body: new Container(
-        padding: new EdgeInsets.all(32.0),
-        child: new Center(
-            child: new Column(
-          children: <Widget>[
-            Text('歌手、曲名(大塚愛の、さくらんぼ)'),
-            TextField(
-              enabled: true,
-              // 入力数
-              style: TextStyle(color: Colors.red),
-              obscureText: false,
-              maxLines: 1,
-              onChanged: _handleTextSongTitle,
-            ),
-            Text('歌詞'),
-            TextField(
-              enabled: true,
-              // 入力数
-              style: TextStyle(color: Colors.black),
-              obscureText: false,
-              maxLines: 1,
-              onChanged: _handleTextlyrics,
-            ),
-            ElevatedButton(
-              onPressed: addLyrics,
-              child: new Text('追加'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: new Text('戻る'),
-            ),
-          ],
-        )),
-      ),
-    );
-  }
-}
-
-void showSimpleSnackBar(BuildContext context, String message) {
-  final snackBar = SnackBar(
-    content: Row(children: <Widget>[
-      Icon(Icons.check),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(children: <Widget>[
-          Text(message),
-          new TextField(
-            enabled: true,
-            // 入力数
-            style: TextStyle(color: Colors.red),
-            obscureText: false,
-            maxLines: 1,
-          ),
-        ]),
-      )
-    ]),
-  );
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
-ttsSpeak(String text) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final FlutterTts tts = FlutterTts();
-  await tts.setSpeechRate(0.4);
-  await tts.setVolume(1.0);
-  await tts.speak(text);
 }
 
 const List<List<String>> lyricsList = const <List<String>>[
@@ -531,7 +305,6 @@ const List<List<String>> lyricsList = const <List<String>>[
     'バンプオブチキンの天体観測'
   ],
 ];
-
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
