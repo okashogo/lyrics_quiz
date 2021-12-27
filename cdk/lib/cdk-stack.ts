@@ -24,6 +24,24 @@ export class CdkStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN, // NOT recommended for production code
     });
 
+    const getAllQuizzesLambda = new Function(this, "getAllQuizzesLambda", {
+      code: new AssetCode("lib/lambda"),
+      handler: "getAllQuizzesLambda.handler",
+      runtime: Runtime.NODEJS_14_X,
+      environment: {
+        TABLE_NAME: dynamoTable.tableName,
+        PRIMARY_KEY: "title",
+      },
+    });
+    dynamoTable.grantReadData(getAllQuizzesLambda);
+
+    // ApiGateway
+    const lyricsQuizApi = new RestApi(this, "LyricsQuizApi", {
+      restApiName: "LyricsQuiz API",
+    });
+    const getItemIntegration = new LambdaIntegration(getAllQuizzesLambda);
+    lyricsQuizApi.root.addMethod("GET", getItemIntegration);
+
     // The code that defines your stack goes here
 
     // example resource
@@ -32,3 +50,45 @@ export class CdkStack extends cdk.Stack {
     // });
   }
 }
+
+export function addCorsOptions(apiResource: IResource) {
+  apiResource.addMethod(
+    "OPTIONS",
+    new MockIntegration({
+      integrationResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            "method.response.header.Access-Control-Allow-Headers":
+              "'Content-Type,access-control-allow-headers,access-control-expose-headers,access-control-allow-origin,access-control-allow-methods,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+            // "method.response.header.Access-Control-Allow-Origin": originDomain,
+            "method.response.header.Access-Control-Allow-Credentials": "'true'",
+            "method.response.header.Access-Control-Allow-Methods":
+              "'OPTIONS,GET,PUT,POST,DELETE'",
+          },
+        },
+      ],
+      passthroughBehavior: PassthroughBehavior.NEVER,
+      requestTemplates: {
+        "application/json": '{"statusCode": 200}',
+      },
+    }),
+    {
+      methodResponses: [
+        {
+          statusCode: "200",
+          responseParameters: {
+            "method.response.header.Access-Control-Allow-Headers": true,
+            "method.response.header.Access-Control-Allow-Methods": true,
+            "method.response.header.Access-Control-Allow-Credentials": true,
+            "method.response.header.Access-Control-Allow-Origin": true,
+          },
+        },
+      ],
+    }
+  );
+}
+
+const app = new cdk.App();
+new CdkStack(app, "CdkStack");
+app.synth();
