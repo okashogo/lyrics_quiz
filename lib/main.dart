@@ -7,13 +7,20 @@ void main() => runApp(Lyrics());
 
 enum Answers { YES, NO }
 
+const headers = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Access-Control-Allow-Headers": "Authorization, Content-Type",
+  "Access-Control-Allow-Methods": "GET, OPTIONS, PUT, DELETE, PATCH, POST",
+  "Access-Control-Allow-Credentials": true,
+};
+
 class Lyrics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => new MainPage(),
-        // '/add': (BuildContext context) => new SubPage()
+        '/add': (BuildContext context) => new SubPage()
       },
     );
   }
@@ -45,14 +52,7 @@ class MainPageState extends State<MainPage> {
     cached();
   }
 
-  // void _setValue(String value) => setState(() => _value = value);
-
   void cached() async {
-    // var url = 'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/';
-    // http.get(url).then((response) {
-
-    // }
-    // var url = Uri.parse('https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
     var client = http.Client();
     try {
       var url = Uri.parse(
@@ -105,7 +105,7 @@ class MainPageState extends State<MainPage> {
                 Icons.add,
                 color: Colors.white,
               ),
-              onPressed: () => Navigator.of(context).pushNamed("/add"),
+              onPressed: () => Navigator.of(context).pushNamed("/add").then((value) => cached()),
             ),
           ],
         ),
@@ -116,47 +116,69 @@ class MainPageState extends State<MainPage> {
                       leading: Icon(
                         Icons.music_note,
                       ),
-                      title: Text(lyrics[0].substring(0, 10)),
+                      title: Text(lyrics[0].length >= 10
+                          ? lyrics[0].substring(0, 10)
+                          : lyrics[0]),
                       onTap: () => ttsSpeak(lyrics[0]),
+                      onLongPress: () => {},
                       trailing: IconButton(
                           onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
                           icon: Icon(Icons.recommend))),
                 )
                 .toList())
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () async {},
-        //   child: Icon(Icons.play_arrow),
-        // ),
         );
   }
 }
 
-class SubPage extends StatelessWidget {
-  String _textSongTitle = '';
-  String _textlyrics = '';
-  void _handleTextSongTitle(String e) {
-    print(e);
-    _textSongTitle = e;
-    // setState(() {
-    //   _textSongTitle = e;
-    // });
+class SubPage extends StatefulWidget {
+  SubPage({Key key, this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  State<StatefulWidget> createState() {
+    return SubPageState();
+  }
+}
+
+class SubPageState extends State<SubPage> {
+  String _textTitle = '';
+  String _textBody = '';
+  void _handleTextSongTitle(String title) {
+    print(title);
+    setState(() {
+      _textTitle = title;
+    });
   }
 
-  void _handleTextlyrics(String e2) {
-    print(e2);
-    _textlyrics = e2;
-    // setState(() {
-    //   _textlyrics = e2;
-    // });
+  void _handleTextlyrics(String body) {
+    setState(() {
+      _textBody = body;
+    });
   }
 
-  void addLyrics() {
-    print("dadad");
-    print(_textSongTitle);
-    print(_textlyrics);
-    // setState(() {
-    //   _textlyrics = e2;
-    // });
+  void addLyrics() async {
+    var client = http.Client();
+    try {
+      var url = Uri.parse(
+          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
+      var response = await http.post(url,
+        body: jsonEncode({
+          'title': _textTitle,
+          'body': _textBody,
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+      );
+      print(response);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      Navigator.of(context).pop();
+    } finally {
+      client.close();
+    }
   }
 
   @override
@@ -170,15 +192,6 @@ class SubPage extends StatelessWidget {
         child: new Center(
             child: new Column(
           children: <Widget>[
-            Text('歌詞'),
-            TextField(
-              enabled: true,
-              // 入力数
-              style: TextStyle(color: Colors.black),
-              obscureText: false,
-              maxLines: 1,
-              onChanged: _handleTextlyrics,
-            ),
             Text('歌手、曲名(大塚愛の、さくらんぼ)'),
             TextField(
               enabled: true,
@@ -187,6 +200,15 @@ class SubPage extends StatelessWidget {
               obscureText: false,
               maxLines: 1,
               onChanged: _handleTextSongTitle,
+            ),
+            Text('歌詞'),
+            TextField(
+              enabled: true,
+              // 入力数
+              style: TextStyle(color: Colors.black),
+              obscureText: false,
+              maxLines: 1,
+              onChanged: _handleTextlyrics,
             ),
             ElevatedButton(
               onPressed: addLyrics,

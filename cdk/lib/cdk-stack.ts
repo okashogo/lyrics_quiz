@@ -35,12 +35,25 @@ export class CdkStack extends cdk.Stack {
     });
     dynamoTable.grantReadData(getAllQuizzesLambda);
 
+    const storeAllQuizzesLambda = new Function(this, "storeAllQuizzesLambda", {
+      code: new AssetCode("lib/lambda"),
+      handler: "storeQuizzesLambda.handler",
+      runtime: Runtime.NODEJS_14_X,
+      environment: {
+        TABLE_NAME: dynamoTable.tableName,
+        PRIMARY_KEY: "title",
+      },
+    });
+    dynamoTable.grantReadWriteData(storeAllQuizzesLambda);
+
     // ApiGateway
     const lyricsQuizApi = new RestApi(this, "LyricsQuizApi", {
       restApiName: "LyricsQuiz API",
     });
     const getItemIntegration = new LambdaIntegration(getAllQuizzesLambda);
     lyricsQuizApi.root.addMethod("GET", getItemIntegration);
+    const storeItemIntegration = new LambdaIntegration(storeAllQuizzesLambda);
+    lyricsQuizApi.root.addMethod("POST", storeItemIntegration);
 
     // The code that defines your stack goes here
 
