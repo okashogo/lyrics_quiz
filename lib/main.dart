@@ -1,64 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() => runApp(Lyrics());
 
 enum Answers { YES, NO }
 
 class Lyrics extends StatelessWidget {
-  // createDialogOption(BuildContext context, Answers answer, String str) {
-  //   return new SimpleDialogOption(
-  //     child: new Text(str),
-  //     onPressed: () {
-  //       Navigator.pop(context, answer);
-  //     },
-  //   );
-  // }
-
-  // void openDialog(BuildContext context) {
-  //   showDialog<Answers>(
-  //     context: context,
-  //     builder: (BuildContext context) => new SimpleDialog(
-  //       title: new Text('SimpleDialog'),
-  //       children: <Widget>[
-  //         Text('aaa'),
-  //         Text(''),
-  //         // createDialogOption(context, Answers.YES, 'Yes'),
-  //         // createDialogOption(context, Answers.NO, 'No')
-  //       ],
-  //     ),
-  //   ).then((value) {
-  //     switch (value) {
-  //       case Answers.YES:
-  //         // _setValue('Yes');
-  //         break;
-  //       case Answers.NO:
-  //         // _setValue('No');
-  //         break;
-  //     }
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => new MainPage(),
-        '/add': (BuildContext context) => new SubPage()
+        // '/add': (BuildContext context) => new SubPage()
       },
     );
   }
 }
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
+  MainPage({Key key, this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  State<StatefulWidget> createState() {
+    return MainPageState();
+  }
+}
+
+class MainPageState extends State<MainPage> {
   final title = '歌詞当てクイズ';
 
   final String _value = '';
 
+  List<List<String>> lyricsListNew = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    print("initState!!!");
+    cached();
+  }
+
   // void _setValue(String value) => setState(() => _value = value);
 
-  void cached() {
-    print('cached');
+  void cached() async {
+    // var url = 'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/';
+    // http.get(url).then((response) {
+
+    // }
+    // var url = Uri.parse('https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
+    var client = http.Client();
+    try {
+      var url = Uri.parse(
+          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
+      var response = await http.get(url);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      Map<String, dynamic> responseList = jsonDecode(response.body);
+      print(responseList);
+      print(responseList['Items']);
+      print("responseItem");
+      List<List<String>> lyricsListTmp = [];
+      for (var responseItem in responseList['Items']) {
+        print(responseItem['title']);
+        print(responseItem['body']);
+        lyricsListTmp.add([
+          responseItem['body'],
+          responseItem['title'],
+        ]);
+      }
+
+      print(lyricsListTmp);
+      setState(() {
+        lyricsListNew = lyricsListTmp;
+      });
+
+      // print(await client.get(uri));
+    } finally {
+      client.close();
+    }
   }
 
   @override
@@ -86,7 +110,7 @@ class MainPage extends StatelessWidget {
           ],
         ),
         body: ListView(
-            children: lyricsList
+            children: lyricsListNew
                 .map(
                   (lyrics) => ListTile(
                       leading: Icon(
