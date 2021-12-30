@@ -32,25 +32,26 @@ class AddPageState extends State<AddPage> {
 
   void addLyrics() async {
     var client = http.Client();
-    try {
-      var url = Uri.parse(
-          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
-      var response = await http.post(url,
-        body: jsonEncode({
-          'title': _textTitle,
-          'body': _textBody,
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        },
-      );
-      print(response);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+    if (_textTitle != "" || _textBody != "") {
+      try {
+        var url = Uri.parse(
+            'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
+        var response = await http.post(
+          url,
+          body: jsonEncode({
+            'title': _textTitle,
+            'body': _textBody,
+          }),
+          headers: {"Content-Type": "application/json"},
+        );
+        print(response);
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
 
-      Navigator.of(context).pop();
-    } finally {
-      client.close();
+        Navigator.of(context).pop();
+      } finally {
+        client.close();
+      }
     }
   }
 

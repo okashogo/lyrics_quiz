@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'pages/mainPage.dart';
 import 'pages/addPage.dart';
+import 'pages/editPage.dart';
 
 void main() => runApp(Lyrics());
 
@@ -23,7 +24,8 @@ class Lyrics extends StatelessWidget {
     return MaterialApp(
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => new MainPage(),
-        '/add': (BuildContext context) => new AddPage()
+        '/add': (BuildContext context) => new AddPage(),
+        '/edit': (BuildContext context) => new EditPage(),
       },
     );
   }
