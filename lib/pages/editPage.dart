@@ -36,18 +36,31 @@ class EditPageState extends State<EditPage> {
     // print('after body:' + _textBody);
   }
 
-  void deleteLyrics() async {
+  void deleteLyrics(String initTitle) async {
     var client = http.Client();
     try {
-      var url = Uri.parse('https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
-      var response = await http.post(
+      var requestTitle = _textTitle;
+      print(initTitle);
+
+      if (_textTitle == "") {
+        requestTitle = initTitle;
+      }
+      print('requestTitle:' + requestTitle);
+      print('https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod?title=' + requestTitle);
+
+      var url = Uri.parse('https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod?title=' + requestTitle);
+      var response = await http.delete(
         url,
-        body: jsonEncode({
-          'title': _textTitle,
-          'body': _textBody,
-        }),
+        // body: jsonEncode({
+        //   'title': _textTitle,
+        // }),
         headers: {"Content-Type": "application/json"},
       );
+      // client.delete(url,
+      // headers: {"Content-Type": "application/json"},
+      // body: jsonEncode({
+      //     'title': _textTitle,
+      //   }))
       print(response);
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -60,28 +73,27 @@ class EditPageState extends State<EditPage> {
 
   void addLyrics(String initTitle, String initBody) async {
     var client = http.Client();
-    if (_textTitle != "") {
-      setState(() {
-        _textBody = initTitle;
-      });
+
+    var requestTitle = _textTitle;
+    var requestBody = _textBody;
+
+    if (_textTitle == "") {
+      requestTitle = initTitle;
     }
-    if (_textBody != "") {
-      setState(() {
-        _textBody = initBody;
-      });
+    if (_textBody == "") {
+      requestBody = initBody;
     }
-    print('title:' + _textTitle);
-    print('title:' + _textTitle);
-    print('body:' + _textBody);
-    if (_textTitle != "" || _textBody != "") {
+    print('requestTitle:' + requestTitle);
+    print('requestBody:' + requestBody);
+    if (requestTitle != "" || requestBody != "") {
       try {
         var url = Uri.parse(
             'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
         var response = await http.post(
           url,
           body: jsonEncode({
-            'title': _textTitle,
-            'body': _textBody,
+            'title': requestTitle,
+            'body': requestBody,
           }),
           headers: {"Content-Type": "application/json"},
         );
@@ -146,7 +158,7 @@ class EditPageState extends State<EditPage> {
               ),
             ),
             ElevatedButton(
-              // onPressed: () => deleteLyrics(args.title),
+              onPressed: () => deleteLyrics(args.title),
               child: new Text('削除'),
               style: ElevatedButton.styleFrom(
                 primary: Colors.red, //ボタンの背景色

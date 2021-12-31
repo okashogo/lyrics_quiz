@@ -46,6 +46,17 @@ export class CdkStack extends cdk.Stack {
     });
     dynamoTable.grantReadWriteData(storeAllQuizzesLambda);
 
+    const deleteQuizzesLambda = new Function(this, "deleteQuizzesLambda", {
+      code: new AssetCode("lib/lambda"),
+      handler: "deleteQuizzesLambda.handler",
+      runtime: Runtime.NODEJS_14_X,
+      environment: {
+        TABLE_NAME: dynamoTable.tableName,
+        PRIMARY_KEY: "title",
+      },
+    });
+    dynamoTable.grantReadWriteData(deleteQuizzesLambda);
+
     // ApiGateway
     const lyricsQuizApi = new RestApi(this, "LyricsQuizApi", {
       restApiName: "LyricsQuiz API",
@@ -54,6 +65,8 @@ export class CdkStack extends cdk.Stack {
     lyricsQuizApi.root.addMethod("GET", getItemIntegration);
     const storeItemIntegration = new LambdaIntegration(storeAllQuizzesLambda);
     lyricsQuizApi.root.addMethod("POST", storeItemIntegration);
+    const deleteItemIntegration = new LambdaIntegration(deleteQuizzesLambda);
+    lyricsQuizApi.root.addMethod("DELETE", deleteItemIntegration);
 
     // The code that defines your stack goes here
 
