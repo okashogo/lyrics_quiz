@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:math';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -62,14 +63,29 @@ class MainPageState extends State<MainPage> {
     }
   }
 
+  void shuffle() async {
+    List<List<String>> lyricsListTmp = lyricsListNew;
+    lyricsListTmp.shuffle(new Random());
+    setState(() {
+      lyricsListNew = lyricsListTmp;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: AppBar(
           title: Text(title),
           backgroundColor: Colors.orange,
-          centerTitle: true,
+          centerTitle: false,
           actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.shuffle,
+                color: Colors.white,
+              ),
+              onPressed: shuffle,
+            ),
             IconButton(
               icon: Icon(
                 Icons.cached,
@@ -82,51 +98,58 @@ class MainPageState extends State<MainPage> {
                 Icons.add,
                 color: Colors.white,
               ),
-              onPressed: () => Navigator.of(context).pushNamed("/add").then((value) => cached()),
+              onPressed: () => Navigator.of(context)
+                  .pushNamed("/add")
+                  .then((value) => cached()),
             ),
           ],
         ),
         body: ListView(
-            children: lyricsListNew.length != 0 ? lyricsListNew
-                .map(
-                  (lyrics) => ListTile(
-                      leading: Icon(
-                        Icons.music_note,
-                      ),
-                      title: Text(lyrics[0].length >= 10
-                          ? lyrics[0].substring(0, 10)
-                          : lyrics[0]),
-                      onTap: () => ttsSpeak(lyrics[0]),
-                      onLongPress: () => Navigator.of(context).pushNamed("/edit", arguments: LyricsArguments(
-                        lyrics[1],
-                        lyrics[0],
-                      )).then((value) => cached()),
-                      trailing: IconButton(
-                          onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
-                          icon: Icon(Icons.recommend))),
-                )
-                .toList()
-                :
-                lyricsList.map(
-                  (lyrics) => ListTile(
-                        leading: Icon(
-                        Icons.music_note,
-                      ),
-                      title: Text(lyrics[0].length >= 10
-                          ? lyrics[0].substring(0, 10)
-                          : lyrics[0]),
-                      onTap: () => ttsSpeak(lyrics[0]),
-                      onLongPress: () => Navigator.of(context).pushNamed("/edit", arguments: LyricsArguments(
-                        lyrics[1],
-                        lyrics[0],
-                      )).then((value) => cached()),
-                      trailing: IconButton(
-                          onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
-                          icon: Icon(Icons.recommend))),
-                )
-                .toList()
-            )
-        );
+            children: lyricsListNew.length != 0
+                ? lyricsListNew
+                    .map(
+                      (lyrics) => ListTile(
+                          leading: Icon(
+                            Icons.music_note,
+                          ),
+                          title: Text(lyrics[0].length >= 10
+                              ? lyrics[0].substring(0, 10)
+                              : lyrics[0]),
+                          onTap: () => ttsSpeak(lyrics[0]),
+                          onLongPress: () => Navigator.of(context)
+                              .pushNamed("/edit",
+                                  arguments: LyricsArguments(
+                                    lyrics[1],
+                                    lyrics[0],
+                                  ))
+                              .then((value) => cached()),
+                          trailing: IconButton(
+                              onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
+                              icon: Icon(Icons.recommend))),
+                    )
+                    .toList()
+                : lyricsList
+                    .map(
+                      (lyrics) => ListTile(
+                          leading: Icon(
+                            Icons.music_note,
+                          ),
+                          title: Text(lyrics[0].length >= 10
+                              ? lyrics[0].substring(0, 10)
+                              : lyrics[0]),
+                          onTap: () => ttsSpeak(lyrics[0]),
+                          onLongPress: () => Navigator.of(context)
+                              .pushNamed("/edit",
+                                  arguments: LyricsArguments(
+                                    lyrics[1],
+                                    lyrics[0],
+                                  ))
+                              .then((value) => cached()),
+                          trailing: IconButton(
+                              onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
+                              icon: Icon(Icons.recommend))),
+                    )
+                    .toList()));
   }
 }
 
@@ -413,7 +436,6 @@ const List<List<String>> lyricsList = const <List<String>>[
     'バンプオブチキンの天体観測'
   ],
 ];
-
 
 ttsSpeak(String text) async {
   WidgetsFlutterBinding.ensureInitialized();
