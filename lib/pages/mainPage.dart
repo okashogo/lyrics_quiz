@@ -442,5 +442,13 @@ ttsSpeak(String text) async {
   final FlutterTts tts = FlutterTts();
   await tts.setSpeechRate(0.4);
   await tts.setVolume(1.0);
+  await tts.setIosAudioCategory(
+    IosTextToSpeechAudioCategory.ambient,
+    [
+          IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+          IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+          IosTextToSpeechAudioCategoryOptions.mixWithOthers
+     ]
+     );
   await tts.speak(text);
 }
