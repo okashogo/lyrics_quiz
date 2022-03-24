@@ -34,7 +34,7 @@ class MainPageState extends State<MainPage> {
     var client = http.Client();
     try {
       var url = Uri.parse(
-          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
+          'https://cabbtmf9ae.execute-api.us-east-1.amazonaws.com/prod/');
       var response = await http.get(url);
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
