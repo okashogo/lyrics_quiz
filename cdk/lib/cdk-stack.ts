@@ -15,58 +15,76 @@ export class CdkStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const dynamoTable = new Table(this, "LyricsQuiz", {
+    const dynamoTable = new Table(this, "OyojohoQuiz", {
       partitionKey: {
         name: "title",
         type: AttributeType.STRING,
       },
-      tableName: "quizzes",
+      tableName: "oyojoho_quizzes",
       removalPolicy: cdk.RemovalPolicy.RETAIN, // NOT recommended for production code
     });
 
-    const getAllQuizzesLambda = new Function(this, "getAllQuizzesLambda", {
-      code: new AssetCode("lib/lambda"),
-      handler: "getAllQuizzesLambda.handler",
-      runtime: Runtime.NODEJS_14_X,
-      environment: {
-        TABLE_NAME: dynamoTable.tableName,
-        PRIMARY_KEY: "title",
-      },
-    });
-    dynamoTable.grantReadData(getAllQuizzesLambda);
+    const getAllOyojohoQuizzesLambda = new Function(
+      this,
+      "getAllOyojohoQuizzesLambda",
+      {
+        code: new AssetCode("lib/lambda"),
+        handler: "getAllOyojohoQuizzesLambda.handler",
+        runtime: Runtime.NODEJS_14_X,
+        environment: {
+          TABLE_NAME: dynamoTable.tableName,
+          PRIMARY_KEY: "title",
+        },
+      }
+    );
+    dynamoTable.grantReadData(getAllOyojohoQuizzesLambda);
 
-    const storeAllQuizzesLambda = new Function(this, "storeAllQuizzesLambda", {
-      code: new AssetCode("lib/lambda"),
-      handler: "storeQuizzesLambda.handler",
-      runtime: Runtime.NODEJS_14_X,
-      environment: {
-        TABLE_NAME: dynamoTable.tableName,
-        PRIMARY_KEY: "title",
-      },
-    });
-    dynamoTable.grantReadWriteData(storeAllQuizzesLambda);
+    const storeAllOyojohoQuizzesLambda = new Function(
+      this,
+      "storeAllOyojohoQuizzesLambda",
+      {
+        code: new AssetCode("lib/lambda"),
+        handler: "storeOyojohoQuizzesLambda.handler",
+        runtime: Runtime.NODEJS_14_X,
+        environment: {
+          TABLE_NAME: dynamoTable.tableName,
+          PRIMARY_KEY: "title",
+        },
+      }
+    );
+    dynamoTable.grantReadWriteData(storeAllOyojohoQuizzesLambda);
 
-    const deleteQuizzesLambda = new Function(this, "deleteQuizzesLambda", {
-      code: new AssetCode("lib/lambda"),
-      handler: "deleteQuizzesLambda.handler",
-      runtime: Runtime.NODEJS_14_X,
-      environment: {
-        TABLE_NAME: dynamoTable.tableName,
-        PRIMARY_KEY: "title",
-      },
-    });
-    dynamoTable.grantReadWriteData(deleteQuizzesLambda);
+    const deleteOyojohoQuizzesLambda = new Function(
+      this,
+      "deleteOyojohoQuizzesLambda",
+      {
+        code: new AssetCode("lib/lambda"),
+        handler: "deleteOyojohoQuizzesLambda.handler",
+        runtime: Runtime.NODEJS_14_X,
+        environment: {
+          TABLE_NAME: dynamoTable.tableName,
+          PRIMARY_KEY: "title",
+        },
+      }
+    );
+    dynamoTable.grantReadWriteData(deleteOyojohoQuizzesLambda);
 
     // ApiGateway
-    const lyricsQuizApi = new RestApi(this, "LyricsQuizApi", {
-      restApiName: "LyricsQuiz API",
+    const oyojohoQuizApi = new RestApi(this, "OyojohoQuizApi", {
+      restApiName: "OyojohoQuiz API",
     });
-    const getItemIntegration = new LambdaIntegration(getAllQuizzesLambda);
-    lyricsQuizApi.root.addMethod("GET", getItemIntegration);
-    const storeItemIntegration = new LambdaIntegration(storeAllQuizzesLambda);
-    lyricsQuizApi.root.addMethod("POST", storeItemIntegration);
-    const deleteItemIntegration = new LambdaIntegration(deleteQuizzesLambda);
-    lyricsQuizApi.root.addMethod("DELETE", deleteItemIntegration);
+    const getItemIntegration = new LambdaIntegration(
+      getAllOyojohoQuizzesLambda
+    );
+    oyojohoQuizApi.root.addMethod("GET", getItemIntegration);
+    const storeItemIntegration = new LambdaIntegration(
+      storeAllOyojohoQuizzesLambda
+    );
+    oyojohoQuizApi.root.addMethod("POST", storeItemIntegration);
+    const deleteItemIntegration = new LambdaIntegration(
+      deleteOyojohoQuizzesLambda
+    );
+    oyojohoQuizApi.root.addMethod("DELETE", deleteItemIntegration);
 
     // The code that defines your stack goes here
 

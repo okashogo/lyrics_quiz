@@ -3,7 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:lyrics_quiz/pages/mainPage.dart';
+import 'package:oyojoho/pages/mainPage.dart';
 
 class EditPage extends StatefulWidget {
   EditPage({Key key, this.title}) : super(key: key);

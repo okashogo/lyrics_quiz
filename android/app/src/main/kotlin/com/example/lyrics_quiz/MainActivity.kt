@@ -1,4 +1,4 @@
-package com.example.lyrics_quiz
+package com.example.oyojoho
 
 import io.flutter.embedding.android.FlutterActivity
 

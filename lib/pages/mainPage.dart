@@ -1,8 +1,13 @@
+import 'dart:ffi';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
+
+import 'package:oyojoho/pages/csv/ouyoujouhoTango.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -16,11 +21,14 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
-  final title = '歌詞当てクイズ';
+  final String title = '応用情報';
 
   final String _value = '';
 
   List<List<String>> lyricsListNew = [];
+  bool repeatMode = false;
+  int global_lyrics_count = 0;
+  int sleep_time = 3;
 
   @override
   void initState() {
@@ -31,36 +39,26 @@ class MainPageState extends State<MainPage> {
   }
 
   void cached() async {
-    var client = http.Client();
-    try {
-      var url = Uri.parse(
-          'https://l3e7bib57k.execute-api.us-east-1.amazonaws.com/prod/');
-      var response = await http.get(url);
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      Map<String, dynamic> responseList = jsonDecode(response.body);
-      print(responseList);
-      print(responseList['Items']);
-      print("responseItem");
-      List<List<String>> lyricsListTmp = [];
-      for (var responseItem in responseList['Items']) {
-        print(responseItem['title']);
-        print(responseItem['body']);
-        lyricsListTmp.add([
-          responseItem['body'],
-          responseItem['title'],
-        ]);
-      }
-
-      print(lyricsListTmp);
-      setState(() {
-        lyricsListNew = lyricsListTmp;
-      });
-
-      // print(await client.get(uri));
-    } finally {
-      client.close();
+    OyojohoTango oyojohoTangoList = OyojohoTango();
+    List<Map<String, String>> responseList = oyojohoTangoList.oyojohoTangoList();
+    // print(responseList);
+    // print(responseList['Items']);
+    // print("responseItem");
+    List<List<String>> lyricsListTmp = [];
+    for (var responseItem in responseList) {
+      // print(responseItem['title']);
+      // print(responseItem['body']);
+      lyricsListTmp.add([
+        responseItem['body'],
+        responseItem['title'],
+      ]);
     }
+
+    // print(lyricsListTmp);
+    setState(() {
+      lyricsListNew = lyricsListTmp;
+      global_lyrics_count = 0;
+    });
   }
 
   void shuffle() async {
@@ -68,7 +66,31 @@ class MainPageState extends State<MainPage> {
     lyricsListTmp.shuffle(new Random());
     setState(() {
       lyricsListNew = lyricsListTmp;
+      global_lyrics_count = 0;
     });
+  }
+
+  void repeat() async {
+    setState(() {
+      repeatMode = !repeatMode;
+    });
+    int lyrics_count = 0;
+    for (var lyricsItem in lyricsListNew) {
+      lyrics_count++;
+      if (repeatMode && lyrics_count > global_lyrics_count) {
+        setState(() {
+          global_lyrics_count = lyrics_count;
+        });
+        await ttsSpeak(lyricsItem[1]);
+        await Future.delayed(Duration(seconds: sleep_time));
+        if (lyrics_count == lyricsListNew.length) {
+          setState(() {
+            repeatMode = !repeatMode;
+            global_lyrics_count = 0;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -79,6 +101,45 @@ class MainPageState extends State<MainPage> {
           backgroundColor: Colors.orange,
           centerTitle: false,
           actions: <Widget>[
+            DropdownButton<String>(
+              value: sleep_time.toString(),
+              elevation: 16,
+              style: const TextStyle(color: Colors.deepPurple),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String newValue) {
+                setState(() {
+                  sleep_time = int.parse(newValue);
+                });
+              },
+              items: <String>[
+                '0',
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6',
+                '7',
+                '8',
+                '9',
+                '10'
+              ].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            IconButton(
+              icon: Icon(
+                (repeatMode) ? Icons.pause : Icons.repeat,
+                color: Colors.white,
+              ),
+              onPressed: repeat,
+            ),
             IconButton(
               icon: Icon(
                 Icons.shuffle,
@@ -107,26 +168,31 @@ class MainPageState extends State<MainPage> {
         body: ListView(
             children: lyricsListNew.length != 0
                 ? lyricsListNew
-                    .map(
-                      (lyrics) => ListTile(
-                          leading: Icon(
-                            Icons.music_note,
-                          ),
-                          title: Text(lyrics[0].length >= 10
-                              ? lyrics[0].substring(0, 10)
-                              : lyrics[0]),
-                          onTap: () => ttsSpeak(lyrics[0]),
-                          onLongPress: () => Navigator.of(context)
-                              .pushNamed("/edit",
-                                  arguments: LyricsArguments(
-                                    lyrics[1],
-                                    lyrics[0],
-                                  ))
-                              .then((value) => cached()),
-                          trailing: IconButton(
-                              onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
-                              icon: Icon(Icons.recommend))),
-                    )
+                    .asMap()
+                    .map((index, lyrics) => MapEntry(
+                          index,
+                          ListTile(
+                              leading: Icon(
+                                (index + 1 > global_lyrics_count)
+                                    ? Icons.music_note
+                                    : Icons.music_off,
+                              ),
+                              title: Text(lyrics[0].length >= 10
+                                  ? lyrics[0].substring(0, 10)
+                                  : lyrics[0]),
+                              onTap: () => ttsSpeak(lyrics[0]),
+                              onLongPress: () => Navigator.of(context)
+                                  .pushNamed("/edit",
+                                      arguments: LyricsArguments(
+                                        lyrics[1],
+                                        lyrics[0],
+                                      ))
+                                  .then((value) => cached()),
+                              trailing: IconButton(
+                                  onPressed: () => ttsSpeak(lyrics[1]),
+                                  icon: Icon(Icons.recommend))),
+                        ))
+                    .values
                     .toList()
                 : lyricsList
                     .map(
@@ -442,13 +508,10 @@ ttsSpeak(String text) async {
   final FlutterTts tts = FlutterTts();
   await tts.setSpeechRate(0.4);
   await tts.setVolume(1.0);
-  await tts.setIosAudioCategory(
-    IosTextToSpeechAudioCategory.ambient,
-    [
-          IosTextToSpeechAudioCategoryOptions.allowBluetooth,
-          IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
-          IosTextToSpeechAudioCategoryOptions.mixWithOthers
-     ]
-     );
+  await tts.setIosAudioCategory(IosTextToSpeechAudioCategory.ambient, [
+    IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+    IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+    IosTextToSpeechAudioCategoryOptions.mixWithOthers
+  ]);
   await tts.speak(text);
 }
