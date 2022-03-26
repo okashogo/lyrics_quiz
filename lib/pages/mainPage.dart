@@ -513,5 +513,6 @@ ttsSpeak(String text) async {
     IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
     IosTextToSpeechAudioCategoryOptions.mixWithOthers
   ]);
+  await tts.awaitSpeakCompletion(true);
   await tts.speak(text);
 }
