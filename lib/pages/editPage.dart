@@ -121,15 +121,23 @@ class EditPageState extends State<EditPage> {
         child: new Center(
             child: new Column(
           children: <Widget>[
-            Text('歌手、曲名(大塚愛の、さくらんぼ)'),
+            Text('名前'),
             TextFormField(
-              initialValue: args.title,
-              enabled: true,
-              // 入力数
-              style: TextStyle(color: Colors.red),
-              obscureText: false,
-              maxLines: 1,
-              onChanged: _handleTextTitle,
+                initialValue: args.title,
+                enabled: true,
+                // 入力数
+                style: TextStyle(color: Colors.red),
+                obscureText: false,
+                maxLines: 1,
+                onChanged: _handleTextTitle,
+              ),
+            Container(
+              padding: new EdgeInsets.all(20.0),
+              child: Text('説明'),
+            ),
+            Container(
+              padding: new EdgeInsets.all(12.0),
+              child: Text(args.body),
             ),
             // TextField(
             //   enabled: true,
@@ -140,34 +148,35 @@ class EditPageState extends State<EditPage> {
             //   onChanged: _handleTextSongTitle,
             //   // controller: TextFormField(initialValue,: args.title),
             // ),
-            Text('歌詞'),
-            TextFormField(
-              initialValue: args.body,
-              enabled: true,
-              // 入力数
-              style: TextStyle(color: Colors.black),
-              obscureText: false,
-              maxLines: 1,
-              onChanged: _handleTextBody,
-            ),
-            ElevatedButton(
-              onPressed: () => addLyrics(args.title, args.body),
-              child: new Text('追加'),
-              style: ElevatedButton.styleFrom(
-                primary: Colors.green, //ボタンの背景色
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => deleteLyrics(args.title),
-              child: new Text('削除'),
-              style: ElevatedButton.styleFrom(
-                primary: Colors.red, //ボタンの背景色
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: new Text('戻る'),
-            ),
+            // Text('説明'),
+            // Text(args.body),
+            // TextFormField(
+            //   initialValue: args.body,
+            //   enabled: true,
+            //   // 入力数
+            //   style: TextStyle(color: Colors.black),
+            //   obscureText: false,
+            //   maxLines: 1,
+            //   onChanged: _handleTextBody,
+            // ),
+            // ElevatedButton(
+            //   onPressed: () => addLyrics(args.title, args.body),
+            //   child: new Text('追加'),
+            //   style: ElevatedButton.styleFrom(
+            //     primary: Colors.green, //ボタンの背景色
+            //   ),
+            // ),
+            // ElevatedButton(
+            //   onPressed: () => deleteLyrics(args.title),
+            //   child: new Text('削除'),
+            //   style: ElevatedButton.styleFrom(
+            //     primary: Colors.red, //ボタンの背景色
+            //   ),
+            // ),
+            // ElevatedButton(
+            //   onPressed: () => Navigator.of(context).pop(),
+            //   child: new Text('戻る'),
+            // ),
           ],
         )),
       ),
