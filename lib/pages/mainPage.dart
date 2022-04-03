@@ -177,9 +177,7 @@ class MainPageState extends State<MainPage> {
                                     ? Icons.music_note
                                     : Icons.music_off,
                               ),
-                              title: Text(lyrics[1].length >= 10
-                                  ? lyrics[1].substring(0, 10)
-                                  : lyrics[1]),
+                              title: Text(lyrics[1]),
                               onTap: () => ttsSpeak(lyrics[0]),
                               onLongPress: () => Navigator.of(context)
                                   .pushNamed("/edit",
