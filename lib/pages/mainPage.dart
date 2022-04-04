@@ -40,7 +40,8 @@ class MainPageState extends State<MainPage> {
 
   void cached() async {
     OyojohoTango oyojohoTangoList = OyojohoTango();
-    List<Map<String, String>> responseList = oyojohoTangoList.oyojohoTangoList();
+    List<Map<String, String>> responseList =
+        oyojohoTangoList.oyojohoTangoList();
     // print(responseList);
     // print(responseList['Items']);
     // print("responseItem");
@@ -70,6 +71,7 @@ class MainPageState extends State<MainPage> {
     });
   }
 
+  var _scrollController = ScrollController();
   void repeat() async {
     setState(() {
       repeatMode = !repeatMode;
@@ -83,6 +85,13 @@ class MainPageState extends State<MainPage> {
         });
         await ttsSpeak(lyricsItem[1]);
         await Future.delayed(Duration(seconds: sleep_time));
+        print('aaaa');
+        print(_scrollController.position.maxScrollExtent * lyrics_count / lyricsListNew.length);
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent * (lyrics_count > 4 ? lyrics_count - 4 : 0) / lyricsListNew.length,
+          duration: Duration(seconds: 1),
+          curve: Curves.bounceOut,
+        );
         if (lyrics_count == lyricsListNew.length) {
           setState(() {
             repeatMode = !repeatMode;
@@ -95,6 +104,7 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // var _scrollController = ScrollController();
     return new Scaffold(
         appBar: AppBar(
           title: Text(title),
@@ -165,54 +175,57 @@ class MainPageState extends State<MainPage> {
             ),
           ],
         ),
-        body: ListView(
-            children: lyricsListNew.length != 0
-                ? lyricsListNew
-                    .asMap()
-                    .map((index, lyrics) => MapEntry(
-                          index,
-                          ListTile(
+        body: Scrollbar(
+            child: ListView(
+                controller: _scrollController,
+                children: lyricsListNew.length != 0
+                    ? lyricsListNew
+                        .asMap()
+                        .map((index, lyrics) => MapEntry(
+                              index,
+                              ListTile(
+                                  leading: Icon(
+                                    (index + 1 > global_lyrics_count)
+                                        ? Icons.music_note
+                                        : Icons.music_off,
+                                  ),
+                                  title: Text(lyrics[1]),
+                                  onTap: () => ttsSpeak(lyrics[0]),
+                                  onLongPress: () =>
+                                      Navigator.of(context).pushNamed("/edit",
+                                          arguments: LyricsArguments(
+                                            lyrics[1],
+                                            lyrics[0],
+                                          )),
+                                  trailing: IconButton(
+                                      onPressed: () => ttsSpeak(lyrics[1]),
+                                      icon: Icon(Icons.recommend))),
+                            ))
+                        .values
+                        .toList()
+                    : lyricsList
+                        .map(
+                          (lyrics) => ListTile(
                               leading: Icon(
-                                (index + 1 > global_lyrics_count)
-                                    ? Icons.music_note
-                                    : Icons.music_off,
+                                Icons.music_note,
                               ),
-                              title: Text(lyrics[1]),
+                              title: Text(lyrics[0].length >= 10
+                                  ? lyrics[0].substring(0, 10)
+                                  : lyrics[0]),
                               onTap: () => ttsSpeak(lyrics[0]),
                               onLongPress: () => Navigator.of(context)
                                   .pushNamed("/edit",
                                       arguments: LyricsArguments(
                                         lyrics[1],
                                         lyrics[0],
-                                      )),
+                                      ))
+                                  .then((value) => cached()),
                               trailing: IconButton(
-                                  onPressed: () => ttsSpeak(lyrics[1]),
+                                  onPressed: () =>
+                                      ttsSpeak('正解は、、、' + lyrics[1]),
                                   icon: Icon(Icons.recommend))),
-                        ))
-                    .values
-                    .toList()
-                : lyricsList
-                    .map(
-                      (lyrics) => ListTile(
-                          leading: Icon(
-                            Icons.music_note,
-                          ),
-                          title: Text(lyrics[0].length >= 10
-                              ? lyrics[0].substring(0, 10)
-                              : lyrics[0]),
-                          onTap: () => ttsSpeak(lyrics[0]),
-                          onLongPress: () => Navigator.of(context)
-                              .pushNamed("/edit",
-                                  arguments: LyricsArguments(
-                                    lyrics[1],
-                                    lyrics[0],
-                                  ))
-                              .then((value) => cached()),
-                          trailing: IconButton(
-                              onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
-                              icon: Icon(Icons.recommend))),
-                    )
-                    .toList()));
+                        )
+                        .toList())));
   }
 }
 
