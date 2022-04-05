@@ -85,8 +85,8 @@ class MainPageState extends State<MainPage> {
         });
         await ttsSpeak(lyricsItem[1]);
         await Future.delayed(Duration(seconds: sleep_time));
-        print('aaaa');
-        print(_scrollController.position.maxScrollExtent * lyrics_count / lyricsListNew.length);
+        // print('aaaa');
+        // print(_scrollController.position.maxScrollExtent * lyrics_count / lyricsListNew.length);
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent * (lyrics_count > 4 ? lyrics_count - 4 : 0) / lyricsListNew.length,
           duration: Duration(seconds: 1),
@@ -196,6 +196,8 @@ class MainPageState extends State<MainPage> {
                                           arguments: LyricsArguments(
                                             lyrics[1],
                                             lyrics[0],
+                                            index,
+                                            lyricsListNew,
                                           )),
                                   trailing: IconButton(
                                       onPressed: () => ttsSpeak(lyrics[1]),
@@ -218,6 +220,8 @@ class MainPageState extends State<MainPage> {
                                       arguments: LyricsArguments(
                                         lyrics[1],
                                         lyrics[0],
+                                        1,
+                                        lyricsList,
                                       ))
                                   .then((value) => cached()),
                               trailing: IconButton(
@@ -232,8 +236,10 @@ class MainPageState extends State<MainPage> {
 class LyricsArguments {
   final String title;
   final String body;
+  final int index;
+  final List<List<String>> lyricsListNew;
 
-  LyricsArguments(this.title, this.body);
+  LyricsArguments(this.title, this.body, this.index, this.lyricsListNew);
 }
 
 const List<List<String>> lyricsList = const <List<String>>[
