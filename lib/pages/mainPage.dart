@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:oyojoho/pages/csv/ouyoujouhoTango.dart';
+import 'package:wakelock/wakelock.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -76,6 +77,12 @@ class MainPageState extends State<MainPage> {
     setState(() {
       repeatMode = !repeatMode;
     });
+
+    if(repeatMode) {
+      Wakelock.enable();
+    }else {
+      Wakelock.disable();
+    }
     int lyrics_count = 0;
     for (var lyricsItem in lyricsListNew) {
       lyrics_count++;
