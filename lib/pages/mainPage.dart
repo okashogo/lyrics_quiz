@@ -74,6 +74,7 @@ class MainPageState extends State<MainPage> {
   }
 
   var _scrollController = ScrollController();
+
   void repeat() async {
     setState(() {
       repeatMode = !repeatMode;
@@ -110,6 +111,12 @@ class MainPageState extends State<MainPage> {
         }
       }
     }
+  }
+  
+  void upChange() async {
+    setState(() {
+      lyricsListNew = lyricsListNew.reversed.toList();
+    });
   }
 
   @override
@@ -155,13 +162,6 @@ class MainPageState extends State<MainPage> {
             ),
             IconButton(
               icon: Icon(
-                (repeatMode) ? Icons.pause : Icons.repeat,
-                color: Colors.white,
-              ),
-              onPressed: repeat,
-            ),
-            IconButton(
-              icon: Icon(
                 Icons.shuffle,
                 color: Colors.white,
               ),
@@ -173,6 +173,13 @@ class MainPageState extends State<MainPage> {
                 color: Colors.white,
               ),
               onPressed: cached,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.file_upload_rounded,
+                color: Colors.white,
+              ),
+              onPressed: upChange,
             ),
             DropdownButton<String>(
               value: sleep_time.toString(),
@@ -259,7 +266,15 @@ class MainPageState extends State<MainPage> {
                                       ttsSpeak('正解は、、、' + lyrics[1]),
                                   icon: Icon(Icons.recommend))),
                         )
-                        .toList())));
+                        .toList())),                  
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: repeat,
+        child: Icon(
+                (repeatMode) ? Icons.pause : Icons.play_arrow_rounded,
+                color: Colors.white,
+              )),
+    );
   }
 }
 
