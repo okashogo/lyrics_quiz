@@ -29,7 +29,8 @@ class MainPageState extends State<MainPage> {
   List<List<String>> lyricsListNew = [];
   bool repeatMode = false;
   int global_lyrics_count = 0;
-  int sleep_time = 3;
+  int sleep_time = 0;
+  int start_percent = 0;
 
   @override
   void initState() {
@@ -78,9 +79,9 @@ class MainPageState extends State<MainPage> {
       repeatMode = !repeatMode;
     });
 
-    if(repeatMode) {
+    if (repeatMode) {
       Wakelock.enable();
-    }else {
+    } else {
       Wakelock.disable();
     }
     int lyrics_count = 0;
@@ -95,7 +96,9 @@ class MainPageState extends State<MainPage> {
         // print('aaaa');
         // print(_scrollController.position.maxScrollExtent * lyrics_count / lyricsListNew.length);
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent * (lyrics_count > 4 ? lyrics_count - 4 : 0) / lyricsListNew.length,
+          _scrollController.position.maxScrollExtent *
+              (lyrics_count > 4 ? lyrics_count - 4 : 0) * 1.014 /
+              (lyricsListNew.length),
           duration: Duration(seconds: 1),
           curve: Curves.bounceOut,
         );
@@ -171,14 +174,34 @@ class MainPageState extends State<MainPage> {
               ),
               onPressed: cached,
             ),
-            IconButton(
-              icon: Icon(
-                Icons.add,
-                color: Colors.white,
+            DropdownButton<String>(
+              value: sleep_time.toString(),
+              elevation: 16,
+              style: const TextStyle(color: Colors.deepPurple),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
               ),
-              onPressed: () => Navigator.of(context)
-                  .pushNamed("/add")
-                  .then((value) => cached()),
+              onChanged: (String newValue) {
+                cached();
+                int lyricsListNewCount = lyricsListNew.length;
+                int middlePoint =
+                    (lyricsListNewCount * double.parse(newValue) / 10).toInt();
+                List<List<String>> before_lyricsListNew =
+                    lyricsListNew.sublist(middlePoint, lyricsListNewCount);
+                List<List<String>> after_lyricsListNew =
+                    lyricsListNew.sublist(0, middlePoint);
+                setState(() {
+                  lyricsListNew = before_lyricsListNew + after_lyricsListNew;
+                });
+              },
+              items: <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text((int.parse(value) * 10).toString() + '%'),
+                );
+              }).toList(),
             ),
           ],
         ),
