@@ -57,7 +57,7 @@ class MainPageState extends State<MainPage> {
       ]);
     }
 
-    // print(lyricsListTmp);
+    // lyricsListTmp.removeRange(3, lyricsListTmp.length);
     setState(() {
       lyricsListNew = lyricsListTmp;
       global_lyrics_count = 0;
@@ -80,39 +80,52 @@ class MainPageState extends State<MainPage> {
       repeatMode = !repeatMode;
     });
 
+    List<List<String>> tmpLyricsListNew = lyricsListNew;
+
     if (repeatMode) {
       Wakelock.enable();
     } else {
       Wakelock.disable();
     }
-    int lyrics_count = 0;
-    for (var lyricsItem in lyricsListNew) {
-      lyrics_count++;
-      if (repeatMode && lyrics_count > global_lyrics_count) {
+    int lyricsCount = 0;
+
+    lyricsCount = global_lyrics_count;
+    while (true) {
+      lyricsCount++;
+      if (repeatMode) {
         setState(() {
-          global_lyrics_count = lyrics_count;
+          global_lyrics_count = lyricsCount;
         });
-        await ttsSpeak(lyricsItem[1]);
-        await Future.delayed(Duration(seconds: sleep_time));
-        // print('aaaa');
-        // print(_scrollController.position.maxScrollExtent * lyrics_count / lyricsListNew.length);
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent *
-              (lyrics_count > 4 ? lyrics_count - 4 : 0) * 1.014 /
+              (lyricsCount > 4 ? lyricsCount - 4 : 0) *
+              1.014 /
               (lyricsListNew.length),
           duration: Duration(seconds: 1),
           curve: Curves.bounceOut,
         );
-        if (lyrics_count == lyricsListNew.length) {
+
+        await ttsSpeak(tmpLyricsListNew[lyricsCount - 1][1]);
+        await Future.delayed(Duration(seconds: sleep_time));
+
+        if (lyricsCount == lyricsListNew.length) {
           setState(() {
-            repeatMode = !repeatMode;
+            // repeatMode = !repeatMode;
             global_lyrics_count = 0;
           });
+          lyricsCount = 0;
         }
+      } else {
+        print("break");
+        Wakelock.disable();
+        setState(() {
+          repeatMode = false;
+        });
+        break;
       }
     }
   }
-  
+
   void upChange() async {
     setState(() {
       lyricsListNew = lyricsListNew.reversed.toList();
@@ -123,157 +136,156 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     // var _scrollController = ScrollController();
     return new Scaffold(
-        appBar: AppBar(
-          title: Text(title),
-          backgroundColor: Colors.orange,
-          centerTitle: false,
-          actions: <Widget>[
-            DropdownButton<String>(
-              value: sleep_time.toString(),
-              elevation: 16,
-              style: const TextStyle(color: Colors.deepPurple),
-              underline: Container(
-                height: 2,
-                color: Colors.deepPurpleAccent,
-              ),
-              onChanged: (String newValue) {
-                setState(() {
-                  sleep_time = int.parse(newValue);
-                });
-              },
-              items: <String>[
-                '0',
-                '1',
-                '2',
-                '3',
-                '4',
-                '5',
-                '6',
-                '7',
-                '8',
-                '9',
-                '10'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Colors.orange,
+        centerTitle: false,
+        actions: <Widget>[
+          DropdownButton<String>(
+            value: sleep_time.toString(),
+            elevation: 16,
+            style: const TextStyle(color: Colors.deepPurple),
+            underline: Container(
+              height: 2,
+              color: Colors.deepPurpleAccent,
             ),
-            IconButton(
-              icon: Icon(
-                Icons.shuffle,
-                color: Colors.white,
-              ),
-              onPressed: shuffle,
+            onChanged: (String newValue) {
+              setState(() {
+                sleep_time = int.parse(newValue);
+              });
+            },
+            items: <String>[
+              '0',
+              '1',
+              '2',
+              '3',
+              '4',
+              '5',
+              '6',
+              '7',
+              '8',
+              '9',
+              '10'
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.shuffle,
+              color: Colors.white,
             ),
-            IconButton(
-              icon: Icon(
-                Icons.cached,
-                color: Colors.white,
-              ),
-              onPressed: cached,
+            onPressed: shuffle,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.cached,
+              color: Colors.white,
             ),
-            IconButton(
-              icon: Icon(
-                Icons.file_upload_rounded,
-                color: Colors.white,
-              ),
-              onPressed: upChange,
+            onPressed: cached,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.file_upload_rounded,
+              color: Colors.white,
             ),
-            DropdownButton<String>(
-              value: sleep_time.toString(),
-              elevation: 16,
-              style: const TextStyle(color: Colors.deepPurple),
-              underline: Container(
-                height: 2,
-                color: Colors.deepPurpleAccent,
-              ),
-              onChanged: (String newValue) {
-                cached();
-                int lyricsListNewCount = lyricsListNew.length;
-                int middlePoint =
-                    (lyricsListNewCount * double.parse(newValue) / 10).toInt();
-                List<List<String>> before_lyricsListNew =
-                    lyricsListNew.sublist(middlePoint, lyricsListNewCount);
-                List<List<String>> after_lyricsListNew =
-                    lyricsListNew.sublist(0, middlePoint);
-                setState(() {
-                  lyricsListNew = before_lyricsListNew + after_lyricsListNew;
-                });
-              },
-              items: <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text((int.parse(value) * 10).toString() + '%'),
-                );
-              }).toList(),
+            onPressed: upChange,
+          ),
+          DropdownButton<String>(
+            value: sleep_time.toString(),
+            elevation: 16,
+            style: const TextStyle(color: Colors.deepPurple),
+            underline: Container(
+              height: 2,
+              color: Colors.deepPurpleAccent,
             ),
-          ],
-        ),
-        body: Scrollbar(
-            child: ListView(
-                controller: _scrollController,
-                children: lyricsListNew.length != 0
-                    ? lyricsListNew
-                        .asMap()
-                        .map((index, lyrics) => MapEntry(
-                              index,
-                              ListTile(
-                                  leading: Icon(
-                                    (index + 1 > global_lyrics_count)
-                                        ? Icons.music_note
-                                        : Icons.music_off,
-                                  ),
-                                  title: Text(lyrics[1]),
-                                  onTap: () => ttsSpeak(lyrics[0]),
-                                  onLongPress: () =>
-                                      Navigator.of(context).pushNamed("/edit",
-                                          arguments: LyricsArguments(
-                                            lyrics[1],
-                                            lyrics[0],
-                                            index,
-                                            lyricsListNew,
-                                          )),
-                                  trailing: IconButton(
-                                      onPressed: () => ttsSpeak(lyrics[1]),
-                                      icon: Icon(Icons.recommend))),
-                            ))
-                        .values
-                        .toList()
-                    : lyricsList
-                        .map(
-                          (lyrics) => ListTile(
-                              leading: Icon(
-                                Icons.music_note,
-                              ),
-                              title: Text(lyrics[0].length >= 10
-                                  ? lyrics[0].substring(0, 10)
-                                  : lyrics[0]),
-                              onTap: () => ttsSpeak(lyrics[0]),
-                              onLongPress: () => Navigator.of(context)
-                                  .pushNamed("/edit",
-                                      arguments: LyricsArguments(
-                                        lyrics[1],
-                                        lyrics[0],
-                                        1,
-                                        lyricsList,
-                                      ))
-                                  .then((value) => cached()),
-                              trailing: IconButton(
-                                  onPressed: () =>
-                                      ttsSpeak('正解は、、、' + lyrics[1]),
-                                  icon: Icon(Icons.recommend))),
-                        )
-                        .toList())),                  
+            onChanged: (String newValue) {
+              cached();
+              int lyricsListNewCount = lyricsListNew.length;
+              int middlePoint =
+                  (lyricsListNewCount * double.parse(newValue) / 10).toInt();
+              List<List<String>> before_lyricsListNew =
+                  lyricsListNew.sublist(middlePoint, lyricsListNewCount);
+              List<List<String>> after_lyricsListNew =
+                  lyricsListNew.sublist(0, middlePoint);
+              setState(() {
+                lyricsListNew = before_lyricsListNew + after_lyricsListNew;
+              });
+            },
+            items: <String>['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text((int.parse(value) * 10).toString() + '%'),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+      body: Scrollbar(
+          child: ListView(
+              controller: _scrollController,
+              children: lyricsListNew.length != 0
+                  ? lyricsListNew
+                      .asMap()
+                      .map((index, lyrics) => MapEntry(
+                            index,
+                            ListTile(
+                                leading: Icon(
+                                  (index + 1 > global_lyrics_count)
+                                      ? Icons.music_note
+                                      : Icons.music_off,
+                                ),
+                                title: Text(lyrics[1]),
+                                onTap: () => ttsSpeak(lyrics[0]),
+                                onLongPress: () =>
+                                    Navigator.of(context).pushNamed("/edit",
+                                        arguments: LyricsArguments(
+                                          lyrics[1],
+                                          lyrics[0],
+                                          index,
+                                          lyricsListNew,
+                                        )),
+                                trailing: IconButton(
+                                    onPressed: () => ttsSpeak(lyrics[1]),
+                                    icon: Icon(Icons.recommend))),
+                          ))
+                      .values
+                      .toList()
+                  : lyricsList
+                      .map(
+                        (lyrics) => ListTile(
+                            leading: Icon(
+                              Icons.music_note,
+                            ),
+                            title: Text(lyrics[0].length >= 10
+                                ? lyrics[0].substring(0, 10)
+                                : lyrics[0]),
+                            onTap: () => ttsSpeak(lyrics[0]),
+                            onLongPress: () => Navigator.of(context)
+                                .pushNamed("/edit",
+                                    arguments: LyricsArguments(
+                                      lyrics[1],
+                                      lyrics[0],
+                                      1,
+                                      lyricsList,
+                                    ))
+                                .then((value) => cached()),
+                            trailing: IconButton(
+                                onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
+                                icon: Icon(Icons.recommend))),
+                      )
+                      .toList())),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: FloatingActionButton(
-        onPressed: repeat,
-        child: Icon(
-                (repeatMode) ? Icons.pause : Icons.play_arrow_rounded,
-                color: Colors.white,
-              )),
+          onPressed: repeat,
+          child: Icon(
+            (repeatMode) ? Icons.pause : Icons.play_arrow_rounded,
+            color: Colors.white,
+          )),
     );
   }
 }
