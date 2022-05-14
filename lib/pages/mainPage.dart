@@ -30,6 +30,8 @@ class MainPageState extends State<MainPage> {
   bool repeatMode = false;
   int global_lyrics_count = 0;
   int sleep_time = 0;
+  double setSpeechRate = 0.4;
+  bool isDescription = false;
   int start_percent = 0;
 
   @override
@@ -105,8 +107,12 @@ class MainPageState extends State<MainPage> {
           curve: Curves.bounceOut,
         );
 
-        await ttsSpeak(tmpLyricsListNew[lyricsCount - 1][1]);
+        await ttsSpeak(tmpLyricsListNew[lyricsCount - 1][1], setSpeechRate);
         await Future.delayed(Duration(seconds: sleep_time));
+        if(isDescription) {
+          await ttsSpeak(tmpLyricsListNew[lyricsCount - 1][0], setSpeechRate);
+          await Future.delayed(Duration(seconds: sleep_time));
+        }
 
         if (lyricsCount == lyricsListNew.length) {
           setState(() {
@@ -137,10 +143,72 @@ class MainPageState extends State<MainPage> {
     // var _scrollController = ScrollController();
     return new Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        // title: Text(title),
         backgroundColor: Colors.orange,
         centerTitle: false,
         actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.file_upload_rounded,
+              color: Colors.white,
+            ),
+            onPressed: upChange,
+          ),
+          DropdownButton<String>(
+            value: setSpeechRate.toString(),
+            elevation: 16,
+            style: const TextStyle(color: Colors.deepPurple),
+            underline: Container(
+              height: 2,
+              color: Colors.deepPurpleAccent,
+            ),
+            onChanged: (String newValue) {
+              setState(() {
+                setSpeechRate = double.parse(newValue);
+              });
+            },
+            items: <String>[
+              '0.4',
+              '0.5',
+              '0.6',
+              '0.7',
+              '0.8',
+              '0.9',
+              '1.0',
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+          DropdownButton<String>(
+            value: isDescription ? '説明' : '単語',
+            elevation: 16,
+            style: const TextStyle(color: Colors.deepPurple),
+            underline: Container(
+              height: 2,
+              color: Colors.deepPurpleAccent,
+            ),
+            onChanged: (String newValue) {
+              setState(() {
+                if (newValue == '説明') {
+                  isDescription = true;
+                } else {
+                  isDescription = false;
+                }
+              });
+            },
+            items: <String>[
+              '単語',
+              '説明',
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
           DropdownButton<String>(
             value: sleep_time.toString(),
             elevation: 16,
@@ -186,13 +254,6 @@ class MainPageState extends State<MainPage> {
               color: Colors.white,
             ),
             onPressed: cached,
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.file_upload_rounded,
-              color: Colors.white,
-            ),
-            onPressed: upChange,
           ),
           DropdownButton<String>(
             value: sleep_time.toString(),
@@ -240,7 +301,7 @@ class MainPageState extends State<MainPage> {
                                       : Icons.music_off,
                                 ),
                                 title: Text(lyrics[1]),
-                                onTap: () => ttsSpeak(lyrics[0]),
+                                onTap: () => ttsSpeak(lyrics[0], setSpeechRate),
                                 onLongPress: () =>
                                     Navigator.of(context).pushNamed("/edit",
                                         arguments: LyricsArguments(
@@ -250,7 +311,7 @@ class MainPageState extends State<MainPage> {
                                           lyricsListNew,
                                         )),
                                 trailing: IconButton(
-                                    onPressed: () => ttsSpeak(lyrics[1]),
+                                    onPressed: () => ttsSpeak(lyrics[1], setSpeechRate),
                                     icon: Icon(Icons.recommend))),
                           ))
                       .values
@@ -264,7 +325,7 @@ class MainPageState extends State<MainPage> {
                             title: Text(lyrics[0].length >= 10
                                 ? lyrics[0].substring(0, 10)
                                 : lyrics[0]),
-                            onTap: () => ttsSpeak(lyrics[0]),
+                            onTap: () => ttsSpeak(lyrics[0], setSpeechRate),
                             onLongPress: () => Navigator.of(context)
                                 .pushNamed("/edit",
                                     arguments: LyricsArguments(
@@ -275,7 +336,7 @@ class MainPageState extends State<MainPage> {
                                     ))
                                 .then((value) => cached()),
                             trailing: IconButton(
-                                onPressed: () => ttsSpeak('正解は、、、' + lyrics[1]),
+                                onPressed: () => ttsSpeak('正解は、、、' + lyrics[1], setSpeechRate),
                                 icon: Icon(Icons.recommend))),
                       )
                       .toList())),
@@ -576,10 +637,10 @@ const List<List<String>> lyricsList = const <List<String>>[
   ],
 ];
 
-ttsSpeak(String text) async {
+ttsSpeak(String text, double setSpeechRate) async {
   WidgetsFlutterBinding.ensureInitialized();
   final FlutterTts tts = FlutterTts();
-  await tts.setSpeechRate(0.4);
+  await tts.setSpeechRate(setSpeechRate);
   await tts.setVolume(1.0);
   await tts.setIosAudioCategory(IosTextToSpeechAudioCategory.ambient, [
     IosTextToSpeechAudioCategoryOptions.allowBluetooth,
